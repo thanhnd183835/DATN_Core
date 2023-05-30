@@ -15,8 +15,8 @@ module.exports.addMessage = async (req, res) => {
     const users = [currentId, req.body.receiver];
     const findChatRoom = await Message.findOne({
       $or: [
-        { sender: users[0], receiver: users[0] },
-        { sender: users[1], receiver: users[1] },
+        { sender: users[0], receiver: users[1] },
+        { sender: users[1], receiver: users[0] },
       ],
     });
     if (!findChatRoom) {
@@ -80,5 +80,49 @@ module.exports.addMessage = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
-module.exports.getListMessage = async (req, res) => {};
-module.exports.getChatRoom = async (req, res) => {};
+// get list messages in chat room(room include 2 persons)
+module.exports.getListMessage = async (req, res) => {
+  try {
+    const currentId = req.user._id;
+    const user = await User.findOne({ _id: currentId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    const users = [currentId, req.params.idReceiver];
+    const findChatRoom = await Message.find({
+      $or: [
+        { sender: users[0], receiver: users[1] },
+        { sender: users[1], receiver: users[0] },
+      ],
+    });
+    if (!findChatRoom) {
+      return res.status(404).json({ message: 'Room not found' });
+    }
+    return res.status(200).json({ code: 0, data: { room: findChatRoom } });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+// get all chat room have this user
+module.exports.getChatRoom = async (req, res) => {
+  try {
+    const currentId = req.user._id;
+    const user = await User.findOne({ _id: currentId });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    // find all chat rooms by user_id
+    const rooms = await ChatRoom.find({
+      $or: [{ 'users.user': user._id }, { 'users.user': user._id }],
+    }).populate({
+      path: 'users',
+      populate: { path: 'user', select: ['userName', 'avatar', 'active', 'updateAt', 'role'] },
+    });
+    if (!rooms) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+    return res.status(200).json({ code: 0, data: rooms });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};

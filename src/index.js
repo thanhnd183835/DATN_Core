@@ -17,6 +17,7 @@ const postRoutes = require('./routes/post');
 const notificationRoutes = require('./routes/notification');
 const userRoutes = require('./routes/user');
 const chatRoutes = require('./routes/chat');
+const transactionRoutes = require('./routes/Transaction');
 app.use(
   cors({
     exposedHeaders: '*',
@@ -34,6 +35,7 @@ app.use('/api/post', postRoutes);
 app.use('/api/notification', notificationRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/transaction', transactionRoutes);
 
 app.get('/', (req, res) => {
   res.status(200).json({
