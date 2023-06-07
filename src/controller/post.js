@@ -1,5 +1,6 @@
 const Post = require('../models/post.js');
 const User = require('../models/user');
+const cloudinary = require('cloudinary').v2;
 // tao bai post
 module.exports.createNewPost = async (req, res) => {
   try {
@@ -23,9 +24,11 @@ module.exports.createNewPost = async (req, res) => {
         data: savePost,
       });
     } else {
+      if (UrlImg) cloudinary.uploader.destroy(UrlImg.filename);
       return res.status(400).json({ error: 'error when user create post' });
     }
   } catch (error) {
+    if (UrlImg) cloudinary.uploader.destroy(UrlImg.filename);
     return res.status(500).json({
       code: 1,
       error: 'Server error',
@@ -83,12 +86,13 @@ module.exports.getPostUser = async (req, res) => {
 module.exports.getPostForMe = async (req, res) => {
   try {
     const currentId = req.user._id;
+
     const user = await User.findOne({ _id: currentId });
     if (!user) {
       return res.status(404).json({ message: 'User not find' });
     }
-    const posts = await Post.find({ postBy: currentId, role: 1 });
-    if (posts) {
+    const posts = await Post.find({ postBy: currentId });
+    if (!posts) {
       return res.status(404).json({ message: 'Not find post ' });
     }
     return res.status(200).json({ code: 0, data: posts });
@@ -104,7 +108,7 @@ module.exports.getPostForFriend = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not find' });
     }
-    const posts = await Post.find({ postBy: idFriend, role: 1 });
+    const posts = await Post.find({ postBy: idFriend });
     if (!posts) {
       return res.status(404).json({ message: 'Not find post ' });
     }
@@ -185,5 +189,99 @@ module.exports.addComment = async (req, res) => {
     }
   } catch (error) {
     return res.status(500).json({ error: 'Server error' });
+  }
+};
+// get list user like
+module.exports.getListUserLiked = async (req, res) => {
+  try {
+    const idPost = req.params.id;
+    const listUserLiked = await Post.findOne({ _id: idPost }).populate({
+      path: 'likes',
+      populate: { path: 'userId', select: ['avatar', 'userName', '_id'] },
+    });
+    if (!listUserLiked) {
+      return res.status(404).json({ code: 1, message: 'Post not found' });
+    }
+    return res.status(200).json({ code: 0, data: listUserLiked });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+// get post hai san
+module.exports.getListSeafood = async (req, res) => {
+  try {
+    const typeItem = 'Hải Sản';
+    const listSeafood = await Post.find({ typeItem: typeItem });
+    if (!listSeafood) {
+      return res.status(404).json({ code: 1, message: 'Sea Food not found' });
+    }
+    return res.status(200).json({ code: 0, data: listSeafood });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+// get post rau củ
+module.exports.getListVegetable = async (req, res) => {
+  try {
+    const typeItem = 'Rau Củ';
+    const listSeafood = await Post.find({ typeItem: typeItem });
+    if (!listSeafood) {
+      return res.status(404).json({ code: 1, message: 'Vegetable not found' });
+    }
+    return res.status(200).json({ code: 0, data: listSeafood });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+// get post Hoa quả
+module.exports.getListFruit = async (req, res) => {
+  try {
+    const typeItem = 'Hoa Quả';
+    const listSeafood = await Post.find({ typeItem: typeItem });
+    if (!listSeafood) {
+      return res.status(404).json({ code: 1, message: 'Fruit not found' });
+    }
+    return res.status(200).json({ code: 0, data: listSeafood });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+// get post Bánh kẹo
+module.exports.getListConfectionery = async (req, res) => {
+  try {
+    const typeItem = 'Bánh Kẹo';
+    const listSeafood = await Post.find({ typeItem: typeItem });
+    if (!listSeafood) {
+      return res.status(404).json({ code: 1, message: 'Confectionery not found' });
+    }
+    return res.status(200).json({ code: 0, data: listSeafood });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+// get post đồ gia dụng
+module.exports.getListHouseware = async (req, res) => {
+  try {
+    const typeItem = 'Đồ Gia Dụng';
+    const listSeafood = await Post.find({ typeItem: typeItem });
+    if (!listSeafood) {
+      return res.status(404).json({ code: 1, message: 'Houseware not found' });
+    }
+    return res.status(200).json({ code: 0, data: listSeafood });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+// get post đồ điện tử
+module.exports.getListElectronic = async (req, res) => {
+  try {
+    const typeItem = 'Đồ Điện Tử';
+    const listSeafood = await Post.find({ typeItem: typeItem });
+    if (!listSeafood) {
+      return res.status(404).json({ code: 1, message: 'Electronic not found' });
+    }
+    return res.status(200).json({ code: 0, data: listSeafood });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
 };

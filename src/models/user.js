@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
-      default: 'default-avatar.png',
+      default: 'https://res.cloudinary.com/dzjtdpc4h/image/upload/v1685695781/DATN/default-avatar_fmsxmp.png',
     },
     subDiViSon: {
       type: String,

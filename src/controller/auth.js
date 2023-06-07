@@ -163,3 +163,36 @@ module.exports.logout = async (req, res) => {
     return res.status(500).json({ code: 1, error: err.message });
   }
 };
+
+// replace password
+module.exports.replacePassword = async (req, res) => {
+  try {
+    const { password, newPassword } = req.body;
+    const user = await User.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found',
+      });
+    } else {
+      const hash_password = user.password;
+      const right_pass = await bcrypt.compare(password, hash_password);
+      if (!right_pass) {
+        return res.status(404).json({
+          error: 'Password incorrect',
+        });
+      } else {
+        const decodePass = await bcrypt.hash(newPassword, 10);
+        await User.findOneAndUpdate({ _id: req.user._id }, { password: decodePass });
+        return res.status(200).json({
+          code: 0,
+          message: 'Password changed',
+        });
+      }
+    }
+  } catch (err) {
+    console.log(err.message);
+    return res.status(500).json({
+      error: 'Server error',
+    });
+  }
+};

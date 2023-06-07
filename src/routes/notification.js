@@ -4,7 +4,7 @@ const controller = require('../controller/notification');
 const { requireSignIn } = require('../middleware');
 
 router.post('/like/:idPost', requireSignIn, controller.likeNotification);
-//chualam
+
 router.post('/comment/:idPost', requireSignIn, controller.commentNotification);
 
 router.post('/follow/:idUser', requireSignIn, controller.followNotification);
