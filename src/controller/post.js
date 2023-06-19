@@ -24,7 +24,7 @@ module.exports.createNewPost = async (req, res) => {
         data: savePost,
       });
     } else {
-      if (UrlImg) cloudinary.uploader.destroy(UrlImg.filename);
+      if (UrlImg) cloudinary.uploader.destroy(UrlImg.fileName);
       return res.status(400).json({ error: 'error when user create post' });
     }
   } catch (error) {
@@ -69,17 +69,18 @@ module.exports.getPostUser = async (req, res) => {
     Post.find({ postBy: { $in: listFollowing }, role: 1 })
       .populate('postBy', ['userName', 'avatar', 'role'])
       .populate({ path: 'comments', populate: { path: 'userId', select: 'userName' } })
-      .sort('-updateAt');
-    then((posts) => {
-      res.status(200).json({
-        code: 0,
-        data: posts,
+      .sort('-updateAt')
+      .then((posts) => {
+        res.status(200).json({
+          code: 0,
+          data: posts,
+        });
+      })
+      .catch((err) => {
+        return res.status(500).json({
+          err: 'server error',
+        });
       });
-    }).catch((err) => {
-      return res.status(500).json({
-        err: 'server error',
-      });
-    });
   }
 };
 // get post for me
@@ -118,28 +119,39 @@ module.exports.getPostForFriend = async (req, res) => {
   }
 };
 // xoa bai post
-module.exports.removePost = async (req, res) => {
+module.exports.deletePost = async (req, res) => {
   try {
-    const idPost = req.params.id;
-    const removePost = await Post.findByIdAndUpdate({ _id: idPost, statusPost: 'active' }, { statusPost: 'deleted' });
-    if (!removePost) {
-      return res.status(404).json({ code: 0, message: 'Post not found' });
+    const idPost = req.params.idPost;
+    console.log(idPost);
+    const userUpdate = await User.findOneAndUpdate(
+      { 'posts.postId': idPost },
+      { $pull: { posts: { postId: idPost } } },
+    );
+
+    if (!userUpdate) {
+      return res.status(404).json({ code: 0, message: 'User Not Found!' });
     }
-    if (removePost) {
+    const deletePost = await Post.findOneAndRemove({ _id: idPost });
+    if (!deletePost) {
+      return res.status(404).json({ code: 0, message: 'Post Not Found!' });
+    }
+    if (deletePost) {
       return res.status(200).json({
         code: 0,
-        message: 'Delete post success',
+        message: 'Delete Forever post success',
       });
     }
-  } catch (error) {
+  } catch (err) {
     return res.status(500).json({ error: 'Server error' });
   }
 };
+
 // like Post
 module.exports.likePost = async (req, res) => {
   try {
-    const idPost = req.params.postId;
-    const checkPostExist = await Post.findOne({ _id: idPost, statusPost: 'active' });
+    const idPost = req.params.idPost;
+
+    const checkPostExist = await Post.findOne({ _id: idPost });
     if (!checkPostExist) {
       return res.status(404).json({ code: 0, message: 'Post Not Found!' });
     }
@@ -207,80 +219,77 @@ module.exports.getListUserLiked = async (req, res) => {
     return res.status(500).json({ error: err.message });
   }
 };
-// get post hai san
-module.exports.getListSeafood = async (req, res) => {
+// get post with type Item
+module.exports.getListWithTypeItem = async (req, res) => {
   try {
-    const typeItem = 'Hải Sản';
-    const listSeafood = await Post.find({ typeItem: typeItem });
-    if (!listSeafood) {
-      return res.status(404).json({ code: 1, message: 'Sea Food not found' });
+    const idUser = req.params.id;
+    const typePost = req.params.typeItem;
+
+    if (typePost === 'all') {
+      const listPost = await Post.find({ postBy: idUser });
+
+      return res.status(200).json({ code: 0, data: listPost });
+    } else {
+      const ListWithTypeItem = await Post.find({ typeItem: typePost, postBy: idUser });
+      if (!ListWithTypeItem) {
+        return res.status(404).json({ code: 1, message: 'Page not found' });
+      }
+      return res.status(200).json({ code: 0, data: ListWithTypeItem });
     }
-    return res.status(200).json({ code: 0, data: listSeafood });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 };
-// get post rau củ
-module.exports.getListVegetable = async (req, res) => {
+
+module.exports.getAllPost = async (req, res) => {
   try {
-    const typeItem = 'Rau Củ';
-    const listSeafood = await Post.find({ typeItem: typeItem });
-    if (!listSeafood) {
-      return res.status(404).json({ code: 1, message: 'Vegetable not found' });
+    const user = await User.findOne({ _id: req.user._id });
+    if (!user) {
+      return res.status(404).json({ code: 1, message: 'User not found' });
     }
-    return res.status(200).json({ code: 0, data: listSeafood });
+    Post.find()
+      .populate('postBy', ['userName', 'avatar'])
+      .sort('-updatedAt')
+      .then((posts) => {
+        res.status(200).json({
+          code: 0,
+          data: posts,
+        });
+      });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 };
-// get post Hoa quả
-module.exports.getListFruit = async (req, res) => {
+module.exports.getPostForMeTypeItem = async (req, res) => {
   try {
-    const typeItem = 'Hoa Quả';
-    const listSeafood = await Post.find({ typeItem: typeItem });
-    if (!listSeafood) {
-      return res.status(404).json({ code: 1, message: 'Fruit not found' });
+    const idUser = req.user._id;
+    const typePost = req.params.typeItem;
+
+    if (typePost === 'all') {
+      const listPost = await Post.find({ postBy: idUser });
+
+      return res.status(200).json({ code: 0, data: listPost });
+    } else {
+      const ListWithTypeItem = await Post.find({ typeItem: typePost, postBy: idUser });
+      if (!ListWithTypeItem) {
+        return res.status(404).json({ code: 1, message: 'Page not found' });
+      }
+      return res.status(200).json({ code: 0, data: ListWithTypeItem });
     }
-    return res.status(200).json({ code: 0, data: listSeafood });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 };
-// get post Bánh kẹo
-module.exports.getListConfectionery = async (req, res) => {
+module.exports.getListWithItem = async (req, res) => {
   try {
-    const typeItem = 'Bánh Kẹo';
-    const listSeafood = await Post.find({ typeItem: typeItem });
-    if (!listSeafood) {
-      return res.status(404).json({ code: 1, message: 'Confectionery not found' });
+    const typePost = req.params.typeItem;
+    console.log(typePost);
+    const list = await Post.find({ typeItem: typePost });
+    console.log(list);
+    if (!list) {
+      return res.status(404).json({ code: 1, message: 'Page not found' });
     }
-    return res.status(200).json({ code: 0, data: listSeafood });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-};
-// get post đồ gia dụng
-module.exports.getListHouseware = async (req, res) => {
-  try {
-    const typeItem = 'Đồ Gia Dụng';
-    const listSeafood = await Post.find({ typeItem: typeItem });
-    if (!listSeafood) {
-      return res.status(404).json({ code: 1, message: 'Houseware not found' });
-    }
-    return res.status(200).json({ code: 0, data: listSeafood });
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-};
-// get post đồ điện tử
-module.exports.getListElectronic = async (req, res) => {
-  try {
-    const typeItem = 'Đồ Điện Tử';
-    const listSeafood = await Post.find({ typeItem: typeItem });
-    if (!listSeafood) {
-      return res.status(404).json({ code: 1, message: 'Electronic not found' });
-    }
-    return res.status(200).json({ code: 0, data: listSeafood });
+    return res.status(200).json({ code: 0, data: list });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

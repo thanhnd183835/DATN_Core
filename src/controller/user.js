@@ -190,15 +190,7 @@ module.exports.getProfileFriend = async (req, res) => {
     if (exFriend.role === null) {
       return res.status(500).json({ code: 1, error: 'role is null' });
     }
-    const friend = await User.findOne({ _id: idFriend })
-      .populate({
-        path: 'followers',
-        populate: { path: 'userId', select: ['userName', 'avatar', 'role'] },
-      })
-      .populate({
-        path: 'following',
-        populate: { path: 'userId', select: ['userName', 'avatar', 'role'] },
-      });
+    const friend = await User.findOne({ _id: idFriend });
     if (!friend) {
       return res.status(404).json({ code: 1, error: 'User not found' });
     }

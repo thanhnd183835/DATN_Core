@@ -48,6 +48,7 @@ const userSchema = new mongoose.Schema(
     following: [{ userId: { type: ObjectId, ref: 'User' } }], // người mình đang theo dõi
     notifications: [{ notificationId: { type: ObjectId, ref: 'Notification' } }],
     posts: [{ postId: { type: ObjectId, ref: 'Post' } }],
+    cart: [{ cartItemId: { type: ObjectId, ref: 'Cart' } }],
     transaction: [{ transactionId: { type: ObjectId, ref: 'Transaction' } }],
     role: {
       type: Number,

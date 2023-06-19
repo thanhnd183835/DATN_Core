@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema(
       // anh minh hoa
     },
     price: {
-      type: String,
+      type: Number,
       require: true,
       // gia san pham
     },
