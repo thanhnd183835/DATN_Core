@@ -3,15 +3,19 @@ const User = require('../models/user');
 // create cart
 module.exports.createCart = async (req, res) => {
   try {
-    const { UrlImage, name, quantity, price, postId } = req.body;
+    const { UrlImage, name, quantity, price, postId, postBy, statusCart, orderId } = req.body;
     const newCart = new Cart({
       UrlImage: UrlImage,
       name: name,
       quantity: quantity,
       price: price,
       postId: postId,
+      postBy: postBy,
       cartBy: req.user._id,
+      statusCart: statusCart,
+      orderId: orderId,
     });
+
     const checkPostId = await Cart.findOne({ postId: postId, cartBy: req.user._id });
 
     if (checkPostId) {

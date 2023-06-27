@@ -31,6 +31,7 @@ const userSchema = new mongoose.Schema(
       require: true,
       // chi tiet sp
     },
+
     comments: [
       {
         userId: { type: ObjectId, ref: 'User' },

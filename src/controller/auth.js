@@ -2,6 +2,7 @@ const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { JWT_SECRET } = require('../config');
+const esClient = require('../ElasticSearch/elasticsearch');
 const endCodeToken = (userID) => {
   return jwt.sign(
     {
@@ -134,6 +135,10 @@ module.exports.signUp = async (req, res) => {
         userName: userName,
       });
       newUser.save();
+      // await esClient.index({
+      //   index: 'datn',
+      //   body: newUser,
+      // });
       return res.status(200).json({
         code: 0,
         data: newUser,

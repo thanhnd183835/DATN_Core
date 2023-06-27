@@ -7,11 +7,14 @@ const shortid = require('shortid');
 module.exports.addMessage = async (req, res) => {
   try {
     const currentId = req.user._id;
+
     const user1 = await User.findOne({ _id: currentId, role: { $ne: 2 } });
-    const user2 = await User.findOne({ _id: req.bdy.receiver, role: { $ne: 2 } });
+    const user2 = await User.findOne({ _id: req.body.receiver, role: { $ne: 2 } });
+
     if (!user1 || !user2) {
       return res.status(404).json({ message: 'User not found or this account was blocked' });
     }
+
     const users = [currentId, req.body.receiver];
     const findChatRoom = await Message.findOne({
       $or: [

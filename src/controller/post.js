@@ -1,3 +1,4 @@
+const esClient = require('../ElasticSearch/elasticsearch.js');
 const Post = require('../models/post.js');
 const User = require('../models/user');
 const cloudinary = require('cloudinary').v2;
@@ -6,7 +7,6 @@ module.exports.createNewPost = async (req, res) => {
   try {
     const { name, price, typeItem, description, detailItem } = req.body;
     const UrlImg = req.file;
-
     const post = new Post({
       name: name,
       price: price,
@@ -17,6 +17,19 @@ module.exports.createNewPost = async (req, res) => {
       postBy: req.user._id,
     });
     const savePost = await post.save();
+    await esClient.index({
+      index: 'datn',
+      id: savePost._id,
+      body: {
+        postId: savePost._id,
+        name: savePost.name,
+        UrlImg: savePost.UrlImg,
+        price: savePost.price,
+        description: savePost.description,
+        detailItem: savePost.detailItem,
+        like: savePost.likes,
+      },
+    });
     if (savePost) {
       await User.findOneAndUpdate({ _id: req.user._id }, { $push: { posts: { postId: post._id } } });
       return res.status(201).json({
@@ -28,10 +41,9 @@ module.exports.createNewPost = async (req, res) => {
       return res.status(400).json({ error: 'error when user create post' });
     }
   } catch (error) {
-    if (UrlImg) cloudinary.uploader.destroy(UrlImg.filename);
     return res.status(500).json({
       code: 1,
-      error: 'Server error',
+      error: error,
     });
   }
 };
@@ -122,7 +134,7 @@ module.exports.getPostForFriend = async (req, res) => {
 module.exports.deletePost = async (req, res) => {
   try {
     const idPost = req.params.idPost;
-    console.log(idPost);
+
     const userUpdate = await User.findOneAndUpdate(
       { 'posts.postId': idPost },
       { $pull: { posts: { postId: idPost } } },
@@ -134,6 +146,14 @@ module.exports.deletePost = async (req, res) => {
     const deletePost = await Post.findOneAndRemove({ _id: idPost });
     if (!deletePost) {
       return res.status(404).json({ code: 0, message: 'Post Not Found!' });
+    }
+    const deleteFromElasticsearch = await esClient.delete({
+      index: 'datn', // Thay đổi tên chỉ mục của bạn
+      id: idPost,
+    });
+
+    if (deleteFromElasticsearch.statusCode !== 200) {
+      return res.status(500).json({ code: 0, message: 'Failed to delete post from Elasticsearch' });
     }
     if (deletePost) {
       return res.status(200).json({
@@ -283,9 +303,9 @@ module.exports.getPostForMeTypeItem = async (req, res) => {
 module.exports.getListWithItem = async (req, res) => {
   try {
     const typePost = req.params.typeItem;
-    console.log(typePost);
+
     const list = await Post.find({ typeItem: typePost });
-    console.log(list);
+
     if (!list) {
       return res.status(404).json({ code: 1, message: 'Page not found' });
     }

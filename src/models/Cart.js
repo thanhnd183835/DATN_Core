@@ -23,7 +23,19 @@ const userSchema = new mongoose.Schema(
       type: Number,
       require: true,
     },
+    // dùng để update trạng thái đơn hàng
+    statusCart: {
+      type: Number,
+      default: 0,
+      enum: [
+        0, // chờ xác nhận
+        1, // đồng ý
+        2, // từ chối
+      ],
+    },
+    orderId: { type: String },
     cartBy: { type: ObjectId, ref: 'User' },
+    postBy: { type: Object },
     postId: { type: ObjectId, ref: 'Post' },
   },
 

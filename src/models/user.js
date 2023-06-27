@@ -49,6 +49,7 @@ const userSchema = new mongoose.Schema(
     notifications: [{ notificationId: { type: ObjectId, ref: 'Notification' } }],
     posts: [{ postId: { type: ObjectId, ref: 'Post' } }],
     cart: [{ cartItemId: { type: ObjectId, ref: 'Cart' } }],
+    order: [{ oderId: { type: ObjectId, ref: 'Order' } }],
     transaction: [{ transactionId: { type: ObjectId, ref: 'Transaction' } }],
     role: {
       type: Number,
