@@ -2,6 +2,8 @@ const Transaction = require('../models/Transaction');
 const config = require('../config/default.json');
 const dayjs = require('dayjs');
 const User = require('../models/user.js');
+const moment = require('moment/moment');
+const Order = require('../models/Order');
 
 function sortObject(obj) {
   let sorted = {};
@@ -29,25 +31,20 @@ module.exports.createPayment = async (req, res) => {
     let returnUrl = config.vnp_ReturnUrl;
     // lay cac truong tu frontend gui len
     const date = new Date();
-    // const formatDateId = dateFormat(date, 'isoDateTime');
-    // const dateId = formatDateId.slice(0, 19).replace(/[-T:]/g, '');
-    // const orderId = dateId.slice(8, 14);
-    // const createDate = dateId;
-    const dateGMT7 = new Date(date.getTime() + 7 * 60 * 60 * 1000);
-    const orderId = dayjs(dateGMT7).format('HHmmss');
-    const createDate = dayjs(dateGMT7).format('YYYYMMDDHHmmss');
-    const amount = req.body.amount;
-    const bankCode = req.body.bankCode;
-    const orderInfo = req.body.orderDescription;
+    const orderId = req.body.orderId;
+    const createDate = moment(date, 'A').format('YYYYMMDDHHmmss');
+
+    const amount = req.body.totalMoney;
+    const bankCode = '';
+    const orderInfo = req.body.orderInfo;
     const orderType = req.body.orderType;
     let locale = req.body.language;
     const transaction = new Transaction({
-      id: req._id,
       orderId: orderId,
-      amount: req.body.amount,
-      bankCode: req.body.bankCode,
-      orderInfo: req.body.orderDescription,
-      orderType: req.body.orderType,
+      amount: amount,
+      bankCode: bankCode,
+      orderInfo: orderInfo,
+      orderType: orderType,
       transactionBy: req.user._id,
     });
     try {
@@ -126,9 +123,11 @@ module.exports.vnpayIpn = async function (req, res) {
         if (currentTransaction.amount === amount / 100) {
           if (rspCode === '00' && tsCode === '00') {
             await Transaction.findOneAndUpdate({ orderId: orderId }, { TransactionStatus: 1 });
-            res.status(200).json({ RspCode: '00', Message: 'success' });
+            await Order.findOneAndUpdate({ _id: orderId }, { paymentStatus: 1 });
+            await res.status(200).json({ RspCode: '00', Message: 'success' });
           } else {
             await Transaction.findOneAndUpdate({ orderId: orderId }, { TransactionStatus: 2 });
+            await Order.findOneAndUpdate({ _id: orderId }, { paymentStatus: 2 });
           }
         }
       }

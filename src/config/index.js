@@ -11,4 +11,5 @@ module.exports = {
   },
 
   JWT_SECRET: process.env.JWT_SECRET,
+  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
 };

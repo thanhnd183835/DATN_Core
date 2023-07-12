@@ -119,7 +119,7 @@ module.exports.getChatRoom = async (req, res) => {
       $or: [{ 'users.user': user._id }, { 'users.user': user._id }],
     }).populate({
       path: 'users',
-      populate: { path: 'user', select: ['userName', 'avatar', 'active', 'updateAt', 'role'] },
+      populate: { path: 'user', select: ['userName', 'avatar', 'active', 'updatedAt', 'role'] },
     });
     if (!rooms) {
       return res.status(404).json({ error: 'Room not found' });

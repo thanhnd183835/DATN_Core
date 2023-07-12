@@ -57,7 +57,15 @@ const userSchema = new mongoose.Schema(
       enum: [
         0, // nguoi dung bth
         1, // nguoi ban hang
-        2, // tk bi khoa
+        3, //admin
+      ],
+    },
+    status: {
+      type: Number,
+      default: 0,
+      enum: [
+        0, // not block
+        1, // block
       ],
     },
     active: {

@@ -20,6 +20,15 @@ const userSchema = new mongoose.Schema(
 
     order: {},
     orderBy: { type: ObjectId, ref: 'User' },
+    paymentStatus: {
+      type: Number,
+      default: 0,
+      enum: [
+        0, // mac dinh chưa thanh toán
+        1, //đã thanh toán
+        2, // chưa thanh toán
+      ],
+    },
   },
 
   { timestamps: true },

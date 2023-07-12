@@ -1,6 +1,7 @@
 const esClient = require('../ElasticSearch/elasticsearch.js');
 const Post = require('../models/post.js');
 const User = require('../models/user');
+const { logout } = require('./auth.js');
 const cloudinary = require('cloudinary').v2;
 // tao bai post
 module.exports.createNewPost = async (req, res) => {
@@ -53,8 +54,8 @@ module.exports.getPostById = async (req, res) => {
   if (idPost) {
     Post.findById({ _id: idPost })
       .populate('postBy', ['userName', 'avatar'])
-      .populate({ path: 'comments', populate: { path: 'userId', select: ['userName, avatar'] } })
-      .sort('-updateAt')
+      .populate({ path: 'comments', populate: { path: 'userId', select: ['userName', 'avatar', '_id'] } })
+      // .populate({path:'updatedAt'},populate:{path:'userId', select:['updatedAt'] })
       .then((post) => {
         res.status(200).json({
           code: 0,
@@ -62,6 +63,7 @@ module.exports.getPostById = async (req, res) => {
         });
       })
       .catch((error) => {
+        console.log(error);
         return res.status(500).json({ error: 'server error' });
       });
   }
@@ -263,34 +265,50 @@ module.exports.getListWithTypeItem = async (req, res) => {
 
 module.exports.getAllPost = async (req, res) => {
   try {
-    const user = await User.findOne({ _id: req.user._id });
-    if (!user) {
+    // const ListUser = await User.find({ role: 1, subDiViSon: req.user.subDiViSon });
+    const limit = parseInt(req.query.limit) || 18;
+    const page = parseInt(req.query.page) || 1;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const listPost = await Post.find({});
+    if (!listPost) {
+      return res.status(404).json({ message: 'Not find post ' });
+    }
+    const result = listPost.slice(startIndex, endIndex);
+    let isLastPage = false;
+    if (result < 18) {
+      isLastPage = true;
+    }
+    return res.status(200).json({ code: 0, data: result, isLastPage: isLastPage });
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
+module.exports.getPostWithSubDiViSon = async (req, res) => {
+  try {
+    const subDiViSon = req.params.subdivision;
+    const ListUser = await User.find({ role: 1, subDiViSon: subDiViSon });
+    if (!ListUser) {
       return res.status(404).json({ code: 1, message: 'User not found' });
     }
-    Post.find()
-      .populate('postBy', ['userName', 'avatar'])
-      .sort('-updatedAt')
-      .then((posts) => {
-        res.status(200).json({
-          code: 0,
-          data: posts,
-        });
-      });
+    const listIdUser = ListUser.map((user) => user._id);
+    const listPost = await Post.find({
+      postBy: { $in: listIdUser },
+    });
+    return res.status(200).json({ data: listPost });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 };
 module.exports.getPostForMeTypeItem = async (req, res) => {
   try {
-    const idUser = req.user._id;
     const typePost = req.params.typeItem;
-
     if (typePost === 'all') {
-      const listPost = await Post.find({ postBy: idUser });
+      const listPost = await Post.find({});
 
       return res.status(200).json({ code: 0, data: listPost });
     } else {
-      const ListWithTypeItem = await Post.find({ typeItem: typePost, postBy: idUser });
+      const ListWithTypeItem = await Post.find({ typeItem: typePost });
       if (!ListWithTypeItem) {
         return res.status(404).json({ code: 1, message: 'Page not found' });
       }

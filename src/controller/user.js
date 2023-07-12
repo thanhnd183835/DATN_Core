@@ -1,5 +1,15 @@
 const User = require('../models/user.js');
-
+const nodemailer = require('nodemailer');
+const smtpTransport = require('nodemailer-smtp-transport');
+const transporter = nodemailer.createTransport(
+  smtpTransport({
+    service: 'Gmail',
+    auth: {
+      user: 'ducthanhbk1998@gmail.com',
+      pass: 'rojvbzqapsmbvozx',
+    },
+  }),
+);
 // follow user
 module.exports.follow = async (req, res) => {
   try {
@@ -197,5 +207,63 @@ module.exports.getProfileFriend = async (req, res) => {
     return res.status(200).json({ code: 0, data: friend });
   } catch (err) {
     return res.status(500).json({ code: 1, error: err.message });
+  }
+};
+module.exports.getallUser = async (req, res) => {
+  try {
+    const listUser = await User.find({});
+    if (!listUser) {
+      return res.status(404).json({ code: 1, error: 'User not found' });
+    }
+    return res.status(200).json({ code: 0, data: listUser });
+  } catch (err) {
+    return res.status(500).json({ code: 1, error: err.message });
+  }
+};
+module.exports.confirmSalePoint = async (req, res) => {
+  try {
+    const userUpdate = await User.findOneAndUpdate({ _id: req.params.id }, { role: 1 });
+    if (userUpdate) {
+      return res.status(200).json({ code: 0, message: 'confirm successfully' });
+    } else {
+      return res.status(400).json({ code: 0, message: 'confirm failed' });
+    }
+  } catch (err) {
+    return res.status(500).json({ code: 1, error: 'Server error' });
+  }
+};
+module.exports.cancelSell = async (req, res) => {
+  try {
+    const userUpdate = await User.findOneAndUpdate({ _id: req.params.id }, { role: 0 });
+    if (userUpdate) {
+      return res.status(200).json({ code: 0, message: 'cancel sell successfully' });
+    } else {
+      return res.status(400).json({ code: 0, message: 'cancel sell failed' });
+    }
+  } catch (err) {
+    return res.status(500).json({ code: 1, error: 'Server error' });
+  }
+};
+module.exports.sendEmail = async (req, res) => {
+  try {
+    const { email, content } = req.body;
+    const mailOptions = {
+      from: email,
+      to: 'ducthanhbk1998@gmail.com',
+      subject: 'Đơn Đăng Ký Điểm Bán',
+      text: content,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log('Error:', error.message);
+        res.status(500).json({ error: 'Failed to send email.' });
+      } else {
+        console.log('Email sent:', info.response);
+        res.status(200).json({ message: 'Email sent successfully!' });
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({ code: 1, error: err });
   }
 };

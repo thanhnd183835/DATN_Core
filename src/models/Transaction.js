@@ -22,13 +22,12 @@ const TransactionSchema = new mongoose.Schema({
   },
   bankCode: {
     type: String,
-    required: true,
   },
   TransactionStatus: {
     type: Number,
     default: 0,
     enum: [
-      0, // mac dinh
+      0, // mac dinh chưa thanh toán
       1, //thanh cong
       2, // that bai
     ],

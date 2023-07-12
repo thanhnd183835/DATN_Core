@@ -55,7 +55,7 @@ module.exports.getListOrderIsPlaced = async (req, res) => {
   try {
     const listOrder = await Order.find({});
     const listPostInOrder = listOrder.map((item) => item.order).flat();
-    const listPostOfUser = listPostInOrder.filter((item) => item.postBy._id === req.user._id);
+    const listPostOfUser = listPostInOrder.filter((item) => item.postBy === req.user._id);
     if (!listPostOfUser) {
       return res.status(404).json({ message: 'Not find order' });
     }
@@ -98,6 +98,21 @@ module.exports.refuseOrder = async (req, res) => {
     } else {
       return res.status(200).json({ message: 'refuse order' });
     }
+  } catch (error) {
+    return res.status(500).json({
+      code: 1,
+      error: error,
+    });
+  }
+};
+module.exports.getOrderById = async (req, res) => {
+  try {
+    const idOrder = req.params.id;
+    const order = await Order.findOne({ _id: idOrder });
+    if (!order) {
+      return res.status(404).json({ code: 1, error: 'order not found' });
+    }
+    return res.status(200).json({ code: 0, data: order });
   } catch (error) {
     return res.status(500).json({
       code: 1,

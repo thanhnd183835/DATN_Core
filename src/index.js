@@ -109,6 +109,9 @@ io.on('connection', (socket) => {
   socket.on('like_post', (data) => {
     io.emit('getNoti', data);
   });
+  socket.on('comment_post', (data) => {
+    io.emit('getNoti', data);
+  });
   socket.on('add_cart', (data) => {
     io.emit('getNoti', data);
   });

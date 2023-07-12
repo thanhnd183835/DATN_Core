@@ -6,7 +6,6 @@ const { requireSignIn } = require('../middleware/index');
 const esClient = require('../ElasticSearch/elasticsearch');
 const createIndexIfNotExists = async (req, res, next) => {
   const indexName = 'datn';
-
   try {
     const { body: indexExists } = await esClient.indices.exists({ index: indexName });
 
@@ -43,7 +42,8 @@ router.post('/like/:idPost', requireSignIn, controller.likePost);
 router.post('/comment/:idPost', requireSignIn, controller.addComment);
 
 router.get('/get-post/:id', requireSignIn, controller.getPostById);
-router.get('/get-all-post', requireSignIn, controller.getAllPost);
+router.get('/get-all-post', controller.getAllPost);
+router.get('/get-all-post-with-subdivision/:subdivision', requireSignIn, controller.getPostWithSubDiViSon);
 router.get('/get-post-for-me', requireSignIn, controller.getPostForMe);
 router.get('/get-post-for-me/:typeItem', requireSignIn, controller.getPostForMeTypeItem);
 router.get('/get-post-for-friend/:id', requireSignIn, controller.getPostForFriend);

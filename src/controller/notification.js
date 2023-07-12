@@ -55,7 +55,7 @@ module.exports.commentNotification = async (req, res) => {
     const notification = new Notification({
       otherUser: req.user._id, // thang dang dang nhap
       userId: owner, // id cua thang dang bai post
-      content: `Đã đánh giá sản phẩm của bạn`,
+      content: `Đã bình luận về sản phẩm của bạn`,
       post: post._id, // id bai post
       statusNotification: 'not seen',
     });

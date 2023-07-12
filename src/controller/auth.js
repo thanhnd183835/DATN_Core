@@ -53,7 +53,7 @@ module.exports.signIn = async (req, res) => {
         const token = jwt.sign(
           {
             _id: user._id,
-            subDiViSonL: user.subDiViSon,
+            subDiViSon: user.subDiViSon,
             following: user.following,
             followers: user.followers,
             posts: user.posts,
@@ -62,6 +62,7 @@ module.exports.signIn = async (req, res) => {
             authType: user.authType,
             userName: user.userName,
             transaction: user.transaction,
+            status: user.status,
           },
           process.env.JWT_SECRET,
           {
@@ -85,6 +86,7 @@ module.exports.signIn = async (req, res) => {
           posts,
           userName,
           transaction,
+          status,
         } = user;
         await User.findOneAndUpdate({ email: email }, { active: true });
         return res.status(200).json({
@@ -104,6 +106,7 @@ module.exports.signIn = async (req, res) => {
             posts,
             userName,
             transaction,
+            status,
           },
           token,
         });
@@ -135,10 +138,6 @@ module.exports.signUp = async (req, res) => {
         userName: userName,
       });
       newUser.save();
-      // await esClient.index({
-      //   index: 'datn',
-      //   body: newUser,
-      // });
       return res.status(200).json({
         code: 0,
         data: newUser,
