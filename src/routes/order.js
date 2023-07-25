@@ -10,5 +10,4 @@ router.post('/agree-item-order', requireSignIn, controller.AgreeOrder);
 router.post('/refuse-item-order', requireSignIn, controller.refuseOrder);
 router.get('/order-detail/:id', requireSignIn, controller.getOrderById);
 
-
 module.exports = router;

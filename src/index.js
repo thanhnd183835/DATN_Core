@@ -25,6 +25,7 @@ const searchRoutes = require('./routes/search');
 const esClient = require('./ElasticSearch/elasticsearch');
 
 const Post = require('./models/post');
+const User = require('./models/user');
 app.use(
   cors({
     exposedHeaders: '*',
@@ -41,9 +42,11 @@ app.use(
 const syncDataToElasticsearch = async () => {
   try {
     // Lấy tất cả các bản ghi từ MongoDB
-    const data = await Post.find({}).lean();
+    const dataPost = await Post.find({}).lean();
+    const dataUser = await User.find({}).lean();
+
     const bulkOps = [];
-    for (const doc of data) {
+    for (const doc of dataPost) {
       bulkOps.push(
         { index: { _index: 'datn', _id: doc._id.toString() } },
         {
@@ -54,6 +57,16 @@ const syncDataToElasticsearch = async () => {
           description: doc.description,
           detailItem: doc.detailItem,
           like: doc.likes,
+        },
+      );
+    }
+    for (const doc of dataUser) {
+      bulkOps.push(
+        { index: { _index: 'datn-user', _id: doc._id.toString() } },
+        {
+          userName: doc.userName,
+          avatar: doc.avatar,
+          userId: doc._id,
         },
       );
     }

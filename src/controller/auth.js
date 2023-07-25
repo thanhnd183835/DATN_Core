@@ -1,32 +1,68 @@
 const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { JWT_SECRET } = require('../config');
 const esClient = require('../ElasticSearch/elasticsearch');
-const endCodeToken = (userID) => {
-  return jwt.sign(
-    {
-      iss: 'ND.Thanh',
-      sub: userID,
-      iat: new Date().getTime(),
-      exp: new Date().setDate(new Date().getDate() + 3),
-    },
-    JWT_SECRET,
-  );
-};
+
+// const endCodeToken = (userID) => {
+//   return jwt.sign(
+//     {
+//       iss: 'ND.Thanh',
+//       sub: userID,
+//       iat: new Date().getTime(),
+//       exp: new Date().setDate(new Date().getDate() + 3),
+//     },
+//     JWT_SECRET,
+//   );
+// };
 
 module.exports.signInFacebook = async (req, res, next) => {
-  const token = endCodeToken(req.user._id);
-  // res.setHeader('DATN', token);
+  const token = jwt.sign(
+    {
+      _id: req.user._id,
+      subDiViSon: req.user.subDiViSon,
+      following: req.user.following,
+      followers: req.user.followers,
+      posts: req.user.posts,
+      role: req.user.role,
+      notifications: req.user.notifications,
+      authType: req.user.authType,
+      userName: req.user.userName,
+      transaction: req.user.transaction,
+      status: req.user.status,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: '300d',
+    },
+  );
+  res.cookie('token', token);
   return res.status(200).json({
     success: true,
-    data: res.req.user,
+    token,
   });
 };
 module.exports.signInGoogle = async (req, res, next) => {
-  const token = endCodeToken(req.user._id);
-  // res.setHeader('DATN', token);
-  return res.status(200).json({ success: true });
+  const token = jwt.sign(
+    {
+      _id: req.user._id,
+      subDiViSon: req.user.subDiViSon,
+      following: req.user.following,
+      followers: req.user.followers,
+      posts: req.user.posts,
+      role: req.user.role,
+      notifications: req.user.notifications,
+      authType: req.user.authType,
+      userName: req.user.userName,
+      transaction: req.user.transaction,
+      status: req.user.status,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: '300d',
+    },
+  );
+  res.cookie('token', token);
+  return res.status(200).json({ success: true, token });
 };
 
 module.exports.signIn = async (req, res) => {
@@ -138,6 +174,15 @@ module.exports.signUp = async (req, res) => {
         userName: userName,
       });
       newUser.save();
+      await esClient.index({
+        index: 'datn-user',
+        id: newUser._id,
+        body: {
+          userName: newUser.userName,
+          avatar: newUser.avatar,
+          userId: newUser._id,
+        },
+      });
       return res.status(200).json({
         code: 0,
         data: newUser,

@@ -7,6 +7,7 @@ const shortid = require('shortid');
 module.exports.addMessage = async (req, res) => {
   try {
     const currentId = req.user._id;
+    const UrlImg = req.file;
 
     const user1 = await User.findOne({ _id: currentId, role: { $ne: 2 } });
     const user2 = await User.findOne({ _id: req.body.receiver, role: { $ne: 2 } });
@@ -38,6 +39,7 @@ module.exports.addMessage = async (req, res) => {
           sender: currentId,
           receiver: req.body.receiver,
           content: req.body.content,
+          image: UrlImg ? UrlImg.path : '',
         });
 
         const saveMessage = await _message.save();
@@ -60,6 +62,7 @@ module.exports.addMessage = async (req, res) => {
         sender: currentId,
         receiver: req.body.receiver,
         content: req.body.content,
+        image: UrlImg ? UrlImg.path : '',
       });
 
       const saveMessage = await _message.save();

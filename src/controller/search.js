@@ -9,12 +9,12 @@ module.exports.search = async (req, res) => {
     }
     // Tìm kiếm trong chỉ mục Elasticsearch chung
     const body = await esClient.search({
-      index: 'datn',
+      index: ['datn', 'datn-user'],
       body: {
         query: {
           multi_match: {
             query: query,
-            fields: ['*'], // Tìm kiếm trong tất cả các trường
+            fields: ['*', 'userName'], // Tìm kiếm trong tất cả các trường
           },
         },
       },

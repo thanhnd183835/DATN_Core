@@ -1,12 +1,13 @@
 const User = require('../models/user.js');
 const nodemailer = require('nodemailer');
 const smtpTransport = require('nodemailer-smtp-transport');
+const { EMAIL_PASSWORD } = require('../config/index.js');
 const transporter = nodemailer.createTransport(
   smtpTransport({
     service: 'Gmail',
     auth: {
       user: 'ducthanhbk1998@gmail.com',
-      pass: 'rojvbzqapsmbvozx',
+      pass: EMAIL_PASSWORD,
     },
   }),
 );
@@ -265,5 +266,48 @@ module.exports.sendEmail = async (req, res) => {
     });
   } catch (err) {
     return res.status(500).json({ code: 1, error: err });
+  }
+};
+module.exports.searchUser = async (req, res) => {
+  try {
+    const name = req.query.name;
+    if (req.query.name === '') {
+      const users = await User.find({});
+      return res.status(200).json({
+        code: 0,
+        data: users,
+      });
+    }
+    const users = await User.find({
+      $or: [
+        {
+          email: {
+            $regex: name,
+            $options: 'i',
+          },
+        },
+        {
+          userName: {
+            $regex: name,
+            $options: 'i',
+          },
+        },
+      ],
+    });
+    if (!users) {
+      return res.status(404).json({
+        code: 0,
+        message: 'user not found',
+      });
+    }
+    if (users) {
+      return res.status(200).json({
+        code: 0,
+        data: users,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ code: 1, error: 'Server error' });
   }
 };

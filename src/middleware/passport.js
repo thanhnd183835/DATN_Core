@@ -34,6 +34,7 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+        console.log(profile);
         const user = await User.findOne({ authGoogleID: profile.id, authType: 'google' });
         if (user) return done(null, user);
         // new account
@@ -71,6 +72,7 @@ passport.use(
           email: profile.emails[0].value,
           firstName: profile.name.givenName,
           lastName: profile.name.familyName,
+          userName: profile.name.familyName + ' ' + profile.name.givenName,
         });
         await newUser.save();
         done(null, newUser);
