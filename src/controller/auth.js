@@ -29,15 +29,51 @@ module.exports.signInFacebook = async (req, res, next) => {
       userName: req.user.userName,
       transaction: req.user.transaction,
       status: req.user.status,
+      avatar: req.user.avatar,
+      email: req.user.email,
     },
     process.env.JWT_SECRET,
     {
       expiresIn: '300d',
     },
   );
+  const {
+    _id,
+    email,
+    role,
+    authType,
+    avatar,
+    subDiViSon,
+    following,
+    followers,
+    firstName,
+    lastName,
+    notifications,
+    posts,
+    userName,
+    transaction,
+    status,
+  } = req.user;
   res.cookie('token', token);
   return res.status(200).json({
     success: true,
+    data: {
+      _id,
+      email,
+      role,
+      authType,
+      avatar,
+      subDiViSon,
+      following,
+      followers,
+      firstName,
+      lastName,
+      notifications,
+      posts,
+      userName,
+      transaction,
+      status,
+    },
     token,
   });
 };
