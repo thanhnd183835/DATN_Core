@@ -1,9 +1,11 @@
+
 const express = require('express');
 const router = express.Router();
 const controller = require('../controller/post');
 const uploadCloud = require('../middleware/uploader');
 const { requireSignIn } = require('../middleware/index');
 const esClient = require('../ElasticSearch/elasticsearch');
+
 const createIndexIfNotExists = async (req, res, next) => {
   const indexName = 'datn';
   try {

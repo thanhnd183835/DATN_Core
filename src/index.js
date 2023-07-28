@@ -6,10 +6,15 @@ const app = express();
 const bodyParser = require('body-parser');
 const http = require('http');
 const { Server } = require('socket.io');
-
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+// const fs = require('fs');
+// const https = require('https');
+// const privateKey = fs.readFileSync('/path/to/private-key.pem', 'utf8');
+// const certificate = fs.readFileSync('/path/to/certificate.pem', 'utf8');
+// const credentials = { key: privateKey, cert: certificate };
 const PORT = process.env.PORT || 2500;
 console.log('MONGO_URL', process.env.MONGO_URL);
-
 const conectDB = require('./config/db');
 conectDB();
 //routes
@@ -23,9 +28,10 @@ const cartRoutes = require('./routes/cart');
 const orderRoutes = require('./routes/order');
 const searchRoutes = require('./routes/search');
 const esClient = require('./ElasticSearch/elasticsearch');
-
 const Post = require('./models/post');
 const User = require('./models/user');
+
+const server = http.createServer(app);
 app.use(
   cors({
     exposedHeaders: '*',
@@ -37,6 +43,13 @@ app.use(
     limit: '500mb',
   }),
 );
+// // serving static files from build directory
+// app.use(express.static(path.join(__dirname, 'build')));
+
+// // catch-all route
+// app.get('/*', function (req, res) {
+//   res.sendFile(path.join(__dirname, 'build', './index.html'));
+// });
 
 //đồng bộ dữ liệu mongo với ElasticSearch
 const syncDataToElasticsearch = async () => {
@@ -86,6 +99,22 @@ app.get('/sync', (req, res) => {
   syncDataToElasticsearch();
   res.send('Data synchronization started');
 });
+
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0', // phiên bản OpenAPI Specification
+    info: {
+      title: 'DATN_CORE',
+      version: '1.0.0',
+      description: 'BE_DATN',
+    },
+  },
+  apis: ['./src/swagger/swagger.js'], // Thư mục chứa các tệp định nghĩa các route của bạn (đuôi .js)
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/post', postRoutes);
 app.use('/api/notification', notificationRoutes);
@@ -106,12 +135,13 @@ app.use((req, res) => {
     msg: 'Page not founded',
   });
 });
-const server = http.createServer(app);
 
+// const server = https.createServer(credentials, app);
 // define socket
 const io = new Server(server, {
   cors: {
-    method: ['GET', 'POST'],
+    origin: '*',
+    methods: ['GET', 'POST'],
   },
 });
 io.on('connection', (socket) => {
