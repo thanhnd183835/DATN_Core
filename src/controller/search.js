@@ -14,17 +14,26 @@ module.exports.search = async (req, res) => {
       index: ['datn', 'datn-user'],
       body: {
         query: {
-          match_all: {},
+          bool: {
+            should: [
+              { match: { userName: query } },
+              { match: { description: query } },
+              { match: { detailItem: query } },
+              { match: { price: query } },
+              { match: { name: query } },
+
+              // Thêm các trường và truy vấn tại đây nếu bạn muốn tìm kiếm trên các trường khác
+            ],
+          },
         },
-        size: 0,
       },
     });
 
-    if (!body || !body.hits || !body.hits.hits || body.hits.hits.length === 0) {
-      console.log('Không có kết quả phù hợp.');
-      return res.status(404).json({ message: 'No matching data found.' });
-    }
-
+    // if (!body || !body.hits || !body.hits.hits || body.hits.hits.length === 0) {
+    //   console.log('Không có kết quả phù hợp.');
+    //   return res.status(404).json({ message: 'No matching data found.' });
+    // }
+    console.log(body);
     res.json(body.hits.hits.map((hit) => hit._source));
   } catch (err) {
     console.error('Error searching Elasticsearch:', err);
