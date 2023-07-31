@@ -16,7 +16,7 @@ module.exports.search = async (req, res) => {
         query: {
           query_string: {
             query: query,
-            fields: ['name', 'description', 'userName'],
+            fields: ['name', 'description', 'detailItem', 'userName'],
             default_operator: 'AND',
           },
         },
