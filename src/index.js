@@ -43,13 +43,7 @@ app.use(
     limit: '500mb',
   }),
 );
-// // serving static files from build directory
-// app.use(express.static(path.join(__dirname, 'build')));
 
-// // catch-all route
-// app.get('/*', function (req, res) {
-//   res.sendFile(path.join(__dirname, 'build', './index.html'));
-// });
 
 //đồng bộ dữ liệu mongo với ElasticSearch
 const syncDataToElasticsearch = async () => {
