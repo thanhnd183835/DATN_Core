@@ -235,6 +235,7 @@ module.exports.signUp = async (req, res) => {
 module.exports.logout = async (req, res) => {
   try {
     const currentId = req.user._id;
+    console.log(currentId);
     const user = await User.findOne({ _id: currentId });
     if (!user) {
       return res.status(404).json({ code: 1, error: 'User not found' });

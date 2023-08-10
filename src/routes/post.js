@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 const controller = require('../controller/post');
@@ -43,7 +42,7 @@ router.post('/delete-post/:idPost', requireSignIn, controller.deletePost);
 router.post('/like/:idPost', requireSignIn, controller.likePost);
 router.post('/comment/:idPost', requireSignIn, controller.addComment);
 router.get('/get-post/:id', requireSignIn, controller.getPostById);
-router.get('/get-all-post', requireSignIn, controller.getAllPost);
+router.get('/get-all-post', controller.getAllPost);
 router.get('/get-all-post-with-subdivision/:subdivision', requireSignIn, controller.getPostWithSubDiViSon);
 router.get('/get-post-for-me', requireSignIn, controller.getPostForMe);
 router.get('/get-post-for-me/:typeItem', requireSignIn, controller.getPostForMeTypeItem);

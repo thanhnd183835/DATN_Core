@@ -8,12 +8,9 @@ const http = require('http');
 const { Server } = require('socket.io');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
-// const fs = require('fs');
-// const https = require('https');
-// const privateKey = fs.readFileSync('/path/to/private-key.pem', 'utf8');
-// const certificate = fs.readFileSync('/path/to/certificate.pem', 'utf8');
-// const credentials = { key: privateKey, cert: certificate };
+
 const PORT = process.env.PORT || 2500;
+
 console.log('MONGO_URL', process.env.MONGO_URL);
 const conectDB = require('./config/db');
 conectDB();
@@ -43,7 +40,6 @@ app.use(
     limit: '500mb',
   }),
 );
-
 
 //đồng bộ dữ liệu mongo với ElasticSearch
 const syncDataToElasticsearch = async () => {
